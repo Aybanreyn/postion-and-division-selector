@@ -21,7 +21,7 @@ levelSelect.addEventListener("change", () => {
 
   positionSelect.disabled = false;
 
-  const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?sheet=${encodeURIComponent(selectedLevel)}`;
+  const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tq=${encodeURIComponent("SELECT A, B, C")}&sheet=${encodeURIComponent(selectedLevel)}`;
 
   fetch(url)
     .then(res => res.text())
@@ -31,12 +31,16 @@ levelSelect.addEventListener("change", () => {
 
       dataRows = [];
 
-      rows.slice(1).forEach(row => {
-        const position = row.c[0]?.v || "";
-        const division = row.c[1]?.v || "";
-        const link = row.c[2]?.v || "";
+      rows.forEach(row => {
+        if (!row.c || row.c.length < 3) return;
 
-        dataRows.push({ position, division, link });
+        const position = row.c[0]?.v?.toString().trim() || "";
+        const division = row.c[1]?.v?.toString().trim() || "";
+        const link = row.c[2]?.v?.toString().trim() || "";
+
+        if (position) {
+          dataRows.push({ position, division, link });
+        }
       });
 
       // Get unique positions
