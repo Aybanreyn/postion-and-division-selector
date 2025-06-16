@@ -1,27 +1,15 @@
 const sheetID = "1_yEfgCYoDTfJUU6wLP0V3SEsbuJmGQuMMJHUBYH69FM";
+const sheetName = "TARGET-SHEET";
 
-const levelSelect = document.getElementById("levelSelect");
 const positionSelect = document.getElementById("positionSelect");
 const divisionSelect = document.getElementById("divisionSelect");
 const submitBtn = document.getElementById("submitBtn");
 
 let dataRows = [];
 
-levelSelect.addEventListener("change", () => {
-  const selectedLevel = levelSelect.value;
-  positionSelect.innerHTML = '<option value="">Select Position</option>';
-  divisionSelect.innerHTML = '<option value="">Select Division</option>';
-  divisionSelect.disabled = true;
-  submitBtn.disabled = true;
-
-  if (!selectedLevel) {
-    positionSelect.disabled = true;
-    return;
-  }
-
-  positionSelect.disabled = false;
-
-  const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tq=${encodeURIComponent("SELECT A, B, C")}&sheet=${encodeURIComponent(selectedLevel)}`;
+document.addEventListener("DOMContentLoaded", () => {
+  const query = "SELECT A, B, C"; // Position, Division, Link
+  const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tq=${encodeURIComponent(query)}&sheet=${sheetName}`;
 
   fetch(url)
     .then(res => res.text())
@@ -32,18 +20,15 @@ levelSelect.addEventListener("change", () => {
       dataRows = [];
 
       rows.forEach(row => {
-        if (!row.c || row.c.length < 3) return;
-
         const position = row.c[0]?.v?.toString().trim() || "";
         const division = row.c[1]?.v?.toString().trim() || "";
         const link = row.c[2]?.v?.toString().trim() || "";
 
-        if (position) {
+        if (position && division && link) {
           dataRows.push({ position, division, link });
         }
       });
 
-      // Get unique positions
       const uniquePositions = [...new Set(dataRows.map(r => r.position))];
 
       uniquePositions.forEach(pos => {
@@ -52,11 +37,11 @@ levelSelect.addEventListener("change", () => {
         opt.textContent = pos;
         positionSelect.appendChild(opt);
       });
+
+      positionSelect.disabled = false;
     })
     .catch(err => {
-      console.error(err);
-      alert("Failed to load data for the selected level.");
-      positionSelect.disabled = true;
+      console.error("Error loading data:", err);
     });
 });
 
@@ -70,8 +55,6 @@ positionSelect.addEventListener("change", () => {
     return;
   }
 
-  divisionSelect.disabled = false;
-
   const filteredDivisions = dataRows
     .filter(r => r.position === selectedPosition)
     .map(r => r.division);
@@ -84,6 +67,8 @@ positionSelect.addEventListener("change", () => {
     opt.textContent = div;
     divisionSelect.appendChild(opt);
   });
+
+  divisionSelect.disabled = false;
 });
 
 divisionSelect.addEventListener("change", () => {
